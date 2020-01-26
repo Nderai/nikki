@@ -1,0 +1,63 @@
+- hosts: all
+  tasks:
+    - name: password field empty
+      become: true
+      shell:
+        cmd: awk -F":" '($2 == "!" || $2 == "*") {print $1}' /etc/shadow
+      register: ServerCheck
+    - debug: var={{ item }}
+      with_items:
+        - ServerCheck.stdout
+    - name: UID 0 of root user only
+      become: true
+      shell:
+        cmd: cat /etc/passwd | awk -F":" '($3 == 0) { print $1 }'
+      register: gid
+    - debug: var={{ item }}
+      with_items:
+        - gid.stdout
+    - name: world writeable file
+      become: true
+      shell:
+        cmd: find / -maxdepth 2 -type d -perm -777 
+      register: file
+    - debug: var={{ item }}
+      with_items:
+        - file.stdout
+    - name: Duplicate Uid
+      become: true
+      shell:
+        cmd: getent passwd | cut -d":" -f3 | sort -n | uniq -d 
+      register: uid
+    - debug: var={{ item }}
+      with_items:
+        - uid.stdout
+    - name: Duplicate Gid
+      become: true
+      shell:
+        cmd: getent passwd | cut -d":" -f4 | sort -n | uniq -d
+      register: Gd
+    - debug: var={{ item }}
+      with_items:
+        - Gd.stdout
+    - name: Duplicate UserName
+      become: true
+      shell:
+        cmd: getent passwd | cut -d":" -f1 | sort -n | uniq -d
+      register: user
+    - debug: var={{ item }}
+      with_items:
+        - user.stdout
+    - name: Duplicate GroupName
+      become: true
+      shell:
+        cmd: getent group | cut -d":" -f1 | sort -n | uniq -d
+      register: group
+    - debug: var={{ item }}
+      with_items:
+        - group.stdout
+
+
+
+
+
